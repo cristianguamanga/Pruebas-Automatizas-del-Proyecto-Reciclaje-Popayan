@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: popayan-reciclaje-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: popayan_reciclaje
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - popayan-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: popayan-reciclaje-backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/popayan_reciclaje?schema=public"
+      JWT_SECRET: "tu_clave_secreta_super_segura_cambiar_en_produccion"
+      JWT_EXPIRES_IN: "7d"
+      PORT: 8080
+      NODE_ENV: production
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - popayan-network
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && npm run start:prod"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: popayan-reciclaje-frontend
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: "http://localhost:3001"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - popayan-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  popayan-network:
+    driver: bridge

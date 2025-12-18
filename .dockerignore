@@ -1,0 +1,16 @@
+# Carpetas de dependencias
+node_modules
+.venv
+vendor/
+
+# Archivos de caché y logs
+npm-debug.log
+yarn-error.log
+*.log
+.DS_Store
+
+# Archivos de desarrollo/entorno local
+.env
+.git
+Dockerfile
+docker-compose.yml
